@@ -1,0 +1,135 @@
+{% comment %}
+  PRINT FORMAT: Custom Purchase Invoice (Vendor Bill)
+  DocType:      Purchase Invoice
+  ERPNext v14+
+{% endcomment %}
+
+<div class="doc-header">
+  <div class="company-block">
+    <div class="company-name">{{ doc.company }}</div>
+    {% if doc.company_address_display %}
+      <div class="company-details">{{ doc.company_address_display | replace('\n','<br>') }}</div>
+    {% endif %}
+    {% set comp = frappe.get_doc("Company", doc.company) %}
+    <div class="company-details mt-4">
+      {% if comp.tax_id %}TRN: <strong>{{ comp.tax_id }}</strong> &nbsp;|&nbsp; {% endif %}
+      {% if comp.phone_no %}Tel: {{ comp.phone_no }}{% endif %}
+    </div>
+  </div>
+  <div class="doc-title-block">
+    <div class="doc-type-label">Purchase Invoice</div>
+    <div class="doc-number">{{ doc.name }}</div>
+    {% if doc.status == "Paid" %}
+      <span class="doc-status-badge status-paid">Paid</span>
+    {% elif doc.docstatus == 1 %}
+      <span class="doc-status-badge status-submitted">Posted</span>
+    {% else %}
+      <span class="doc-status-badge status-draft">Draft</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="info-grid">
+  <div class="info-box">
+    <div class="info-box-title">Vendor / Supplier</div>
+    <div style="font-weight:600; font-size:12px; margin-bottom:4px;">{{ doc.supplier_name }}</div>
+    {% if doc.address_display %}
+      <div class="text-muted" style="font-size:10.5px;">{{ doc.address_display | replace('\n','<br>') }}</div>
+    {% endif %}
+    {% if doc.supplier_gstin %}
+      <div class="mt-4" style="font-size:10.5px;">VAT / TRN: <strong>{{ doc.supplier_gstin }}</strong></div>
+    {% endif %}
+  </div>
+  <div class="info-box">
+    <div class="info-box-title">Bill Details</div>
+    <div class="info-row"><span class="info-label">Bill No.</span><span class="info-value">{{ doc.name }}</span></div>
+    <div class="info-row"><span class="info-label">Vendor Bill Ref.</span><span class="info-value">{{ doc.bill_no or '—' }}</span></div>
+    <div class="info-row"><span class="info-label">Bill Date</span><span class="info-value">{{ doc.posting_date | date }}</span></div>
+    <div class="info-row"><span class="info-label">Due Date</span><span class="info-value">{{ doc.due_date | date }}</span></div>
+    {% if doc.items[0].purchase_order %}
+    <div class="info-row"><span class="info-label">Against PO</span><span class="info-value">{{ doc.items[0].purchase_order }}</span></div>
+    {% endif %}
+    {% if doc.payment_terms_template %}
+    <div class="info-row"><span class="info-label">Payment Terms</span><span class="info-value">{{ doc.payment_terms_template }}</span></div>
+    {% endif %}
+  </div>
+</div>
+
+<table class="items-table">
+  <thead>
+    <tr>
+      <th style="width:5%">#</th>
+      <th style="width:35%">Item / Description</th>
+      <th style="width:8%">HSN/SAC</th>
+      <th style="width:10%" class="right">Qty</th>
+      <th style="width:8%" class="right">UOM</th>
+      <th style="width:13%" class="right">Rate</th>
+      <th style="width:8%" class="right">Tax%</th>
+      <th style="width:13%" class="right">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in doc.items %}
+    <tr>
+      <td class="center">{{ loop.index }}</td>
+      <td>
+        <strong>{{ item.item_name }}</strong>
+        {% if item.description and item.description != item.item_name %}
+          <div class="item-desc">{{ item.description | striptags }}</div>
+        {% endif %}
+        <div class="item-desc text-muted">{{ item.item_code }}</div>
+      </td>
+      <td class="text-muted" style="font-size:10px;">{{ item.gst_hsn_code or '—' }}</td>
+      <td class="right">{{ item.qty }}</td>
+      <td class="right text-muted">{{ item.uom }}</td>
+      <td class="right">{{ "{:,.2f}".format(item.rate) }}</td>
+      <td class="right text-muted">{{ item.item_tax_rate or '—' }}</td>
+      <td class="right font-bold">{{ "{:,.2f}".format(item.amount) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="totals-wrapper">
+  <div class="totals-box">
+    <div class="totals-row"><span class="totals-label">Subtotal</span><span class="totals-value">{{ "{:,.2f}".format(doc.total) }}</span></div>
+    {% for tax in doc.taxes %}
+    <div class="totals-row">
+      <span class="totals-label">{{ tax.description }}</span>
+      <span class="totals-value">{{ "{:,.2f}".format(tax.tax_amount) }}</span>
+    </div>
+    {% endfor %}
+    <div class="totals-row grand-total">
+      <span class="totals-label">Bill Total ({{ doc.currency }})</span>
+      <span class="totals-value">{{ "{:,.2f}".format(doc.grand_total) }}</span>
+    </div>
+    {% if doc.outstanding_amount %}
+    <div class="totals-row" style="background:#fff7ed;">
+      <span class="totals-label" style="color:#92400e;">Outstanding</span>
+      <span class="totals-value" style="color:#92400e;">{{ "{:,.2f}".format(doc.outstanding_amount) }}</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if doc.in_words %}
+<div class="amount-words"><strong>Amount in Words:</strong> {{ doc.in_words }}</div>
+{% endif %}
+
+{% if doc.terms %}
+<div class="terms-section mt-12">
+  <div class="terms-title">Notes</div>
+  {{ doc.terms }}
+</div>
+{% endif %}
+
+<div class="signature-block">
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Accounts Payable</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Verified By</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Approved By</div></div>
+</div>
+
+<div class="doc-footer">
+  <span>{{ doc.company }} — Purchase Invoice</span>
+  <span>Printed: {{ frappe.utils.now() | date }}</span>
+</div>

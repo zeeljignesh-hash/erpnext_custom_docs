@@ -1,0 +1,190 @@
+{% comment %}
+  PRINT FORMAT: Custom Sales Invoice
+  DocType:      Sales Invoice
+  ERPNext v14+
+  Paste this HTML into: Setup > Print Format > New
+  Set "Standard" = No, "Custom Format" = Yes
+{% endcomment %}
+
+<!-- ── COMPANY HEADER ─────────────────────────────────────── -->
+<div class="doc-header">
+  <div class="company-block">
+    {% if doc.company_address_display %}
+      <div class="company-name">{{ doc.company }}</div>
+      <div class="company-details">{{ doc.company_address_display | replace('\n','<br>') }}</div>
+    {% else %}
+      <div class="company-name">{{ doc.company }}</div>
+    {% endif %}
+    {% set comp = frappe.get_doc("Company", doc.company) %}
+    <div class="company-details mt-4">
+      {% if comp.tax_id %}VAT / TRN: <strong>{{ comp.tax_id }}</strong> &nbsp;|&nbsp; {% endif %}
+      {% if comp.phone_no %}Tel: {{ comp.phone_no }} &nbsp;|&nbsp; {% endif %}
+      {% if comp.email %}{{ comp.email }}{% endif %}
+    </div>
+  </div>
+  <div class="doc-title-block">
+    <div class="doc-type-label">Tax Invoice</div>
+    <div class="doc-number">{{ doc.name }}</div>
+    <div>
+      {% if doc.status == "Paid" %}
+        <span class="doc-status-badge status-paid">Paid</span>
+      {% elif doc.status == "Overdue" %}
+        <span class="doc-status-badge status-overdue">Overdue</span>
+      {% elif doc.docstatus == 1 %}
+        <span class="doc-status-badge status-submitted">Submitted</span>
+      {% else %}
+        <span class="doc-status-badge status-draft">Draft</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ── INFO GRID ─────────────────────────────────────────────── -->
+<div class="info-grid">
+  <div class="info-box">
+    <div class="info-box-title">Bill To</div>
+    <div style="font-weight:600; font-size:12px; margin-bottom:4px;">{{ doc.customer_name }}</div>
+    {% if doc.address_display %}
+      <div class="text-muted" style="font-size:10.5px;">{{ doc.address_display | replace('\n','<br>') }}</div>
+    {% endif %}
+    {% if doc.contact_display %}
+      <div class="mt-4 text-muted" style="font-size:10.5px;">{{ doc.contact_display }}</div>
+    {% endif %}
+    {% if doc.customer_gstin %}
+      <div class="mt-4" style="font-size:10.5px;">VAT / TRN: <strong>{{ doc.customer_gstin }}</strong></div>
+    {% endif %}
+  </div>
+  <div class="info-box">
+    <div class="info-box-title">Invoice Details</div>
+    <div class="info-row"><span class="info-label">Invoice No.</span><span class="info-value">{{ doc.name }}</span></div>
+    <div class="info-row"><span class="info-label">Invoice Date</span><span class="info-value">{{ doc.posting_date | date }}</span></div>
+    <div class="info-row"><span class="info-label">Due Date</span><span class="info-value">{{ doc.due_date | date }}</span></div>
+    {% if doc.po_no %}
+    <div class="info-row"><span class="info-label">PO Reference</span><span class="info-value">{{ doc.po_no }}</span></div>
+    {% endif %}
+    {% if doc.payment_terms_template %}
+    <div class="info-row"><span class="info-label">Payment Terms</span><span class="info-value">{{ doc.payment_terms_template }}</span></div>
+    {% endif %}
+    {% if doc.currency != doc.company_currency %}
+    <div class="info-row"><span class="info-label">Currency</span><span class="info-value">{{ doc.currency }}</span></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── ITEMS TABLE ───────────────────────────────────────────── -->
+<table class="items-table">
+  <thead>
+    <tr>
+      <th style="width:5%">#</th>
+      <th style="width:35%">Item Description</th>
+      <th style="width:8%" class="right">HSN/SAC</th>
+      <th style="width:10%" class="right">Qty</th>
+      <th style="width:8%" class="right">UOM</th>
+      <th style="width:13%" class="right">Unit Price</th>
+      <th style="width:8%" class="right">Disc%</th>
+      <th style="width:13%" class="right">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in doc.items %}
+    <tr>
+      <td class="center">{{ loop.index }}</td>
+      <td>
+        <strong>{{ item.item_name }}</strong>
+        {% if item.description and item.description != item.item_name %}
+          <div class="item-desc">{{ item.description | striptags }}</div>
+        {% endif %}
+        {% if item.item_code != item.item_name %}
+          <div class="item-desc text-muted">{{ item.item_code }}</div>
+        {% endif %}
+      </td>
+      <td class="right text-muted">{{ item.gst_hsn_code or '—' }}</td>
+      <td class="right">{{ item.qty | int if item.qty == item.qty | int else item.qty }}</td>
+      <td class="right text-muted">{{ item.uom }}</td>
+      <td class="right">{{ "{:,.2f}".format(item.rate) }}</td>
+      <td class="right">{{ item.discount_percentage or '—' }}</td>
+      <td class="right font-bold">{{ "{:,.2f}".format(item.amount) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- ── TOTALS ─────────────────────────────────────────────────── -->
+<div class="totals-wrapper">
+  <div class="totals-box">
+    <div class="totals-row">
+      <span class="totals-label">Subtotal ({{ doc.currency }})</span>
+      <span class="totals-value">{{ "{:,.2f}".format(doc.total) }}</span>
+    </div>
+    {% if doc.discount_amount %}
+    <div class="totals-row">
+      <span class="totals-label">Discount</span>
+      <span class="totals-value">− {{ "{:,.2f}".format(doc.discount_amount) }}</span>
+    </div>
+    {% endif %}
+    {% for tax in doc.taxes %}
+    <div class="totals-row">
+      <span class="totals-label">{{ tax.description }} ({{ tax.rate }}%)</span>
+      <span class="totals-value">{{ "{:,.2f}".format(tax.tax_amount) }}</span>
+    </div>
+    {% endfor %}
+    {% if doc.shipping_charges %}
+    <div class="totals-row">
+      <span class="totals-label">Shipping</span>
+      <span class="totals-value">{{ "{:,.2f}".format(doc.shipping_charges) }}</span>
+    </div>
+    {% endif %}
+    <div class="totals-row grand-total">
+      <span class="totals-label">Total ({{ doc.currency }})</span>
+      <span class="totals-value">{{ "{:,.2f}".format(doc.grand_total) }}</span>
+    </div>
+    {% if doc.outstanding_amount %}
+    <div class="totals-row" style="background:#fff7ed;">
+      <span class="totals-label" style="color:#92400e;">Amount Due</span>
+      <span class="totals-value" style="color:#92400e;">{{ "{:,.2f}".format(doc.outstanding_amount) }}</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── AMOUNT IN WORDS ───────────────────────────────────────── -->
+{% if doc.in_words %}
+<div class="amount-words">
+  <strong>Amount in Words:</strong> {{ doc.in_words }}
+</div>
+{% endif %}
+
+<!-- ── BANK DETAILS ──────────────────────────────────────────── -->
+{% set comp = frappe.get_doc("Company", doc.company) %}
+{% if comp.bank_account %}
+<div class="bank-details">
+  <div class="bank-details-title">Bank Transfer Details</div>
+  <div class="bank-grid">
+    <div class="bank-row"><span class="bank-label">Bank Name:</span><span class="bank-value">{{ comp.bank_account }}</span></div>
+    <div class="bank-row"><span class="bank-label">IBAN:</span><span class="bank-value">{{ comp.iban or '—' }}</span></div>
+    <div class="bank-row"><span class="bank-label">Account No.:</span><span class="bank-value">{{ comp.bank_account_no or '—' }}</span></div>
+    <div class="bank-row"><span class="bank-label">Swift/BIC:</span><span class="bank-value">{{ comp.swift_number or '—' }}</span></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── TERMS ─────────────────────────────────────────────────── -->
+{% if doc.terms %}
+<div class="terms-section">
+  <div class="terms-title">Terms &amp; Conditions</div>
+  {{ doc.terms }}
+</div>
+{% endif %}
+
+<!-- ── SIGNATURES ────────────────────────────────────────────── -->
+<div class="signature-block">
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Prepared By</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Approved By</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Customer Signature &amp; Stamp</div></div>
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────────────────── -->
+<div class="doc-footer">
+  <span>{{ doc.company }} — This is a computer-generated document.</span>
+  <span>Printed: {{ frappe.utils.now() | date }}</span>
+</div>

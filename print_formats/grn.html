@@ -1,0 +1,124 @@
+{% comment %}
+  PRINT FORMAT: Custom GRN (Goods Received Note)
+  DocType:      Purchase Receipt
+  ERPNext v14+
+{% endcomment %}
+
+<div class="doc-header">
+  <div class="company-block">
+    <div class="company-name">{{ doc.company }}</div>
+    {% if doc.company_address_display %}
+      <div class="company-details">{{ doc.company_address_display | replace('\n','<br>') }}</div>
+    {% endif %}
+  </div>
+  <div class="doc-title-block">
+    <div class="doc-type-label">Goods Received Note (GRN)</div>
+    <div class="doc-number">{{ doc.name }}</div>
+    {% if doc.docstatus == 1 %}
+      <span class="doc-status-badge status-submitted">Received</span>
+    {% else %}
+      <span class="doc-status-badge status-draft">Draft</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="delivery-boxes">
+  <div class="delivery-box">
+    <div class="delivery-box-label">Received Date</div>
+    <div class="delivery-box-value" style="font-size:12px;">{{ doc.posting_date | date }}</div>
+  </div>
+  <div class="delivery-box">
+    <div class="delivery-box-label">Total Items</div>
+    <div class="delivery-box-value">{{ doc.items | length }}</div>
+  </div>
+  <div class="delivery-box">
+    <div class="delivery-box-label">Total Qty</div>
+    <div class="delivery-box-value">{{ doc.total_qty }}</div>
+  </div>
+</div>
+
+<div class="info-grid">
+  <div class="info-box">
+    <div class="info-box-title">Supplier</div>
+    <div style="font-weight:600; font-size:12px; margin-bottom:4px;">{{ doc.supplier_name }}</div>
+    {% if doc.address_display %}
+      <div class="text-muted" style="font-size:10.5px;">{{ doc.address_display | replace('\n','<br>') }}</div>
+    {% endif %}
+  </div>
+  <div class="info-box">
+    <div class="info-box-title">Receipt Details</div>
+    <div class="info-row"><span class="info-label">GRN No.</span><span class="info-value">{{ doc.name }}</span></div>
+    <div class="info-row"><span class="info-label">Date</span><span class="info-value">{{ doc.posting_date | date }}</span></div>
+    {% if doc.supplier_delivery_note %}
+    <div class="info-row"><span class="info-label">Vendor DO Ref.</span><span class="info-value">{{ doc.supplier_delivery_note }}</span></div>
+    {% endif %}
+    {% if doc.items[0].purchase_order %}
+    <div class="info-row"><span class="info-label">Against PO</span><span class="info-value">{{ doc.items[0].purchase_order }}</span></div>
+    {% endif %}
+    <div class="info-row"><span class="info-label">Received At</span><span class="info-value">{{ doc.set_warehouse or doc.items[0].warehouse }}</span></div>
+  </div>
+</div>
+
+<table class="items-table">
+  <thead>
+    <tr>
+      <th style="width:5%">#</th>
+      <th style="width:28%">Item</th>
+      <th style="width:14%">Batch / Serial</th>
+      <th style="width:10%" class="right">PO Qty</th>
+      <th style="width:10%" class="right">Received Qty</th>
+      <th style="width:10%" class="right">Rejected Qty</th>
+      <th style="width:8%" class="right">UOM</th>
+      <th style="width:8%">Warehouse</th>
+      <th style="width:12%" class="right">Rate</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in doc.items %}
+    <tr>
+      <td class="center">{{ loop.index }}</td>
+      <td>
+        <strong>{{ item.item_name }}</strong>
+        <div class="item-desc text-muted">{{ item.item_code }}</div>
+      </td>
+      <td style="font-size:10px; color:#555;">{{ item.batch_no or '—' }}</td>
+      <td class="right">{{ item.qty }}</td>
+      <td class="right font-bold">
+        <span class="grn-badge grn-accepted">{{ item.received_qty or item.qty }}</span>
+      </td>
+      <td class="right">
+        {% if item.rejected_qty %}
+          <span class="grn-badge grn-rejected">{{ item.rejected_qty }}</span>
+        {% else %}—{% endif %}
+      </td>
+      <td class="right text-muted">{{ item.uom }}</td>
+      <td style="font-size:10px; color:#555;">{{ item.warehouse or '—' }}</td>
+      <td class="right">{{ "{:,.2f}".format(item.rate) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="totals-wrapper">
+  <div class="totals-box">
+    <div class="totals-row"><span class="totals-label">Net Total</span><span class="totals-value">{{ "{:,.2f}".format(doc.total) }}</span></div>
+    {% for tax in doc.taxes %}
+    <div class="totals-row"><span class="totals-label">{{ tax.description }}</span><span class="totals-value">{{ "{:,.2f}".format(tax.tax_amount) }}</span></div>
+    {% endfor %}
+    <div class="totals-row grand-total">
+      <span class="totals-label">Total Value ({{ doc.currency }})</span>
+      <span class="totals-value">{{ "{:,.2f}".format(doc.grand_total) }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="signature-block">
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Received By</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Checked By (QC)</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Store Manager</div></div>
+</div>
+
+<div class="doc-footer">
+  <span>{{ doc.company }} — Goods Received Note</span>
+  <span>Printed: {{ frappe.utils.now() | date }}</span>
+</div>

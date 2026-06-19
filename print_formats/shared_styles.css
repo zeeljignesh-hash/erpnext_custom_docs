@@ -1,0 +1,303 @@
+/* ═══════════════════════════════════════════════════════════════
+   SHARED PRINT FORMAT STYLESHEET — ERPNext Custom Documents
+   Include this in every print format's CSS section
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Base Reset ─────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body, .print-format {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 12px;
+  color: #1a1a2e;
+  line-height: 1.5;
+  background: #fff;
+}
+
+/* ── Page Layout ─────────────────────────────────────────────── */
+.page-break { page-break-after: always; }
+.section    { margin-bottom: 18px; }
+
+/* ── Company Header ─────────────────────────────────────────── */
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #1a56db;
+  margin-bottom: 20px;
+}
+.company-block { flex: 1; }
+.company-name  {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a56db;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.company-details { font-size: 10.5px; color: #555; line-height: 1.6; }
+.company-details a { color: #1a56db; text-decoration: none; }
+
+.doc-title-block { text-align: right; }
+.doc-type-label  {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #1a56db;
+  margin-bottom: 4px;
+}
+.doc-number {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+}
+.doc-status-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.status-draft      { background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db; }
+.status-submitted  { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.status-paid       { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.status-cancelled  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.status-overdue    { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+/* ── Info Grid ───────────────────────────────────────────────── */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.info-box {
+  background: #f8faff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.info-box-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #1a56db;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 11px;
+}
+.info-label { color: #6b7280; min-width: 90px; }
+.info-value { font-weight: 500; color: #1a1a2e; text-align: right; }
+
+/* ── Items Table ─────────────────────────────────────────────── */
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0;
+}
+.items-table thead tr {
+  background: #1a56db;
+  color: #fff;
+}
+.items-table thead th {
+  padding: 9px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.items-table thead th.right { text-align: right; }
+.items-table tbody tr { border-bottom: 1px solid #e9ecf2; }
+.items-table tbody tr:nth-child(even) { background: #f8faff; }
+.items-table tbody tr:last-child { border-bottom: 2px solid #1a56db; }
+.items-table td {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #1a1a2e;
+  vertical-align: top;
+}
+.items-table td.right  { text-align: right; }
+.items-table td.center { text-align: center; }
+.item-desc   { color: #555; font-size: 10px; margin-top: 2px; }
+
+/* ── Totals Block ────────────────────────────────────────────── */
+.totals-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0;
+}
+.totals-box {
+  width: 300px;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
+}
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 14px;
+  font-size: 11.5px;
+  border-bottom: 1px solid #e9ecf2;
+}
+.totals-row:last-child  { border-bottom: none; }
+.totals-row.grand-total {
+  background: #1a56db;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 14px;
+}
+.totals-label { color: #6b7280; }
+.totals-row.grand-total .totals-label { color: #bfdbfe; }
+.totals-value { font-weight: 600; }
+
+/* ── Amount in Words ─────────────────────────────────────────── */
+.amount-words {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #f0f7ff;
+  border-left: 3px solid #1a56db;
+  border-radius: 0 4px 4px 0;
+  font-size: 11px;
+  font-style: italic;
+  color: #374151;
+}
+.amount-words strong { font-style: normal; color: #1a56db; }
+
+/* ── Bank / Payment Details ──────────────────────────────────── */
+.bank-details {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #f8faff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+.bank-details-title {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #1a56db;
+  margin-bottom: 8px;
+}
+.bank-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 20px;
+  font-size: 11px;
+}
+.bank-row { display: flex; gap: 8px; }
+.bank-label { color: #6b7280; min-width: 110px; }
+.bank-value { font-weight: 500; }
+
+/* ── Terms & Conditions ──────────────────────────────────────── */
+.terms-section {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 10.5px;
+  color: #555;
+}
+.terms-title {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+/* ── Signature Block ─────────────────────────────────────────── */
+.signature-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin-top: 30px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+.sig-box { text-align: center; }
+.sig-line {
+  border-top: 1px solid #1a1a2e;
+  margin-bottom: 5px;
+  margin-top: 36px;
+}
+.sig-label { font-size: 10px; color: #6b7280; }
+
+/* ── QR / Barcode area ───────────────────────────────────────── */
+.qr-area { text-align: right; margin-top: 10px; }
+.qr-area img { width: 72px; height: 72px; }
+
+/* ── Footer ──────────────────────────────────────────────────── */
+.doc-footer {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  color: #9ca3af;
+}
+
+/* ── Utility ─────────────────────────────────────────────────── */
+.text-right  { text-align: right; }
+.text-center { text-align: center; }
+.text-blue   { color: #1a56db; }
+.text-muted  { color: #6b7280; }
+.font-bold   { font-weight: 700; }
+.mt-4  { margin-top: 4px; }
+.mt-8  { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.w-half { width: 50%; }
+
+/* ── Delivery-specific ───────────────────────────────────────── */
+.delivery-boxes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.delivery-box {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+}
+.delivery-box-label { font-size: 9px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
+.delivery-box-value { font-size: 14px; font-weight: 700; color: #1a56db; margin-top: 3px; }
+
+/* ── GRN-specific ────────────────────────────────────────────── */
+.grn-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 9.5px;
+  font-weight: 600;
+}
+.grn-accepted  { background: #d1fae5; color: #065f46; }
+.grn-rejected  { background: #fee2e2; color: #991b1b; }
+.grn-partial   { background: #fef3c7; color: #92400e; }
+
+@media print {
+  body { font-size: 11px; }
+  .doc-header { border-bottom-width: 1.5pt; }
+  .items-table thead tr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .totals-row.grand-total { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .doc-footer { position: fixed; bottom: 0; width: 100%; }
+}

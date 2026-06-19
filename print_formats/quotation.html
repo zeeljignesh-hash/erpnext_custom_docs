@@ -1,0 +1,136 @@
+{% comment %}
+  PRINT FORMAT: Custom Quotation
+  DocType:      Quotation
+  ERPNext v14+
+{% endcomment %}
+
+<div class="doc-header">
+  <div class="company-block">
+    <div class="company-name">{{ doc.company }}</div>
+    {% if doc.company_address_display %}
+      <div class="company-details">{{ doc.company_address_display | replace('\n','<br>') }}</div>
+    {% endif %}
+    {% set comp = frappe.get_doc("Company", doc.company) %}
+    <div class="company-details mt-4">
+      {% if comp.tax_id %}TRN: <strong>{{ comp.tax_id }}</strong> &nbsp;|&nbsp; {% endif %}
+      {% if comp.phone_no %}Tel: {{ comp.phone_no }}{% endif %}
+    </div>
+  </div>
+  <div class="doc-title-block">
+    <div class="doc-type-label">Quotation / Proposal</div>
+    <div class="doc-number">{{ doc.name }}</div>
+    {% if doc.docstatus == 1 %}
+      <span class="doc-status-badge status-submitted">Submitted</span>
+    {% else %}
+      <span class="doc-status-badge status-draft">Draft</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="info-grid">
+  <div class="info-box">
+    <div class="info-box-title">{{ doc.quotation_to }}</div>
+    <div style="font-weight:600; font-size:12px; margin-bottom:4px;">{{ doc.party_name }}</div>
+    {% if doc.address_display %}
+      <div class="text-muted" style="font-size:10.5px;">{{ doc.address_display | replace('\n','<br>') }}</div>
+    {% endif %}
+    {% if doc.contact_display %}
+      <div class="mt-4 text-muted" style="font-size:10.5px;">{{ doc.contact_display }}</div>
+    {% endif %}
+  </div>
+  <div class="info-box">
+    <div class="info-box-title">Quotation Details</div>
+    <div class="info-row"><span class="info-label">Quote No.</span><span class="info-value">{{ doc.name }}</span></div>
+    <div class="info-row"><span class="info-label">Date</span><span class="info-value">{{ doc.transaction_date | date }}</span></div>
+    <div class="info-row"><span class="info-label">Valid Until</span><span class="info-value">{{ doc.valid_till | date if doc.valid_till else 'Open' }}</span></div>
+    {% if doc.payment_terms_template %}
+    <div class="info-row"><span class="info-label">Payment Terms</span><span class="info-value">{{ doc.payment_terms_template }}</span></div>
+    {% endif %}
+    <div class="info-row"><span class="info-label">Currency</span><span class="info-value">{{ doc.currency }}</span></div>
+  </div>
+</div>
+
+<!-- Intro note -->
+<div style="margin-bottom:14px; font-size:11.5px; color:#374151; line-height:1.6;">
+  Dear {{ doc.contact_person or doc.party_name }},<br>
+  We are pleased to submit our quotation for your kind consideration. Please find the details below:
+</div>
+
+<table class="items-table">
+  <thead>
+    <tr>
+      <th style="width:5%">#</th>
+      <th style="width:38%">Item / Description</th>
+      <th style="width:10%" class="right">Qty</th>
+      <th style="width:8%" class="right">UOM</th>
+      <th style="width:13%" class="right">Unit Price</th>
+      <th style="width:8%" class="right">Disc%</th>
+      <th style="width:14%" class="right">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in doc.items %}
+    <tr>
+      <td class="center">{{ loop.index }}</td>
+      <td>
+        <strong>{{ item.item_name }}</strong>
+        {% if item.description and item.description != item.item_name %}
+          <div class="item-desc">{{ item.description | striptags }}</div>
+        {% endif %}
+      </td>
+      <td class="right">{{ item.qty }}</td>
+      <td class="right text-muted">{{ item.uom }}</td>
+      <td class="right">{{ "{:,.2f}".format(item.rate) }}</td>
+      <td class="right">{{ item.discount_percentage or '—' }}</td>
+      <td class="right font-bold">{{ "{:,.2f}".format(item.amount) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="totals-wrapper">
+  <div class="totals-box">
+    <div class="totals-row">
+      <span class="totals-label">Subtotal</span>
+      <span class="totals-value">{{ "{:,.2f}".format(doc.total) }}</span>
+    </div>
+    {% if doc.discount_amount %}
+    <div class="totals-row">
+      <span class="totals-label">Discount</span>
+      <span class="totals-value">− {{ "{:,.2f}".format(doc.discount_amount) }}</span>
+    </div>
+    {% endif %}
+    {% for tax in doc.taxes %}
+    <div class="totals-row">
+      <span class="totals-label">{{ tax.description }} ({{ tax.rate }}%)</span>
+      <span class="totals-value">{{ "{:,.2f}".format(tax.tax_amount) }}</span>
+    </div>
+    {% endfor %}
+    <div class="totals-row grand-total">
+      <span class="totals-label">Grand Total ({{ doc.currency }})</span>
+      <span class="totals-value">{{ "{:,.2f}".format(doc.grand_total) }}</span>
+    </div>
+  </div>
+</div>
+
+{% if doc.in_words %}
+<div class="amount-words"><strong>Amount in Words:</strong> {{ doc.in_words }}</div>
+{% endif %}
+
+{% if doc.terms %}
+<div class="terms-section mt-12">
+  <div class="terms-title">Terms &amp; Conditions</div>
+  {{ doc.terms }}
+</div>
+{% endif %}
+
+<div class="signature-block">
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Prepared By</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Authorised Signatory</div></div>
+  <div class="sig-box"><div class="sig-line"></div><div class="sig-label">Customer Acceptance &amp; Date</div></div>
+</div>
+
+<div class="doc-footer">
+  <span>{{ doc.company }} — Quotation</span>
+  <span>Printed: {{ frappe.utils.now() | date }}</span>
+</div>
