@@ -1,0 +1,110 @@
+{%- set doc = doc -%}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+{% include "erpnext_custom_docs/print_formats/print_common.css" %}
+.cn-banner {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 0 6px 6px 0;
+  padding: 8px 14px;
+  font-size: 9pt;
+  color: #92400e;
+  margin-bottom: 16px;
+}
+</style>
+</head>
+<body>
+<div class="doc-wrapper">
+
+  <div class="doc-header">
+    <div class="company-block">
+      {% if doc.company_logo %}<img src="{{ doc.company_logo }}" style="max-height:55px;margin-bottom:6px;display:block;">{% endif %}
+      <div class="company-name">{{ doc.company }}</div>
+      <div class="company-meta">
+        TRN: {{ frappe.get_value("Company", doc.company, "tax_id") or "—" }}<br>
+        {{ frappe.get_value("Company", doc.company, "phone_no") or "" }}
+      </div>
+    </div>
+    <div class="doc-title-block">
+      <div class="doc-type">Credit Note</div>
+      <div class="doc-number">{{ doc.name }}</div>
+      <span class="doc-status status-partial">Credit Note</span>
+    </div>
+  </div>
+
+  <div class="cn-banner">
+    This is a <strong>Credit Note</strong> issued against Invoice
+    <strong>{{ doc.return_against or "—" }}</strong>.
+    The amount shown represents a credit due to the customer.
+  </div>
+
+  <div class="doc-meta">
+    <div class="meta-block">
+      <div class="meta-label">Customer</div>
+      <div class="party-name">{{ doc.customer }}</div>
+      <div class="party-addr">{{ doc.customer_address or "" }}<br>TRN: {{ doc.tax_id or "—" }}</div>
+    </div>
+    <div class="meta-block">
+      <div class="meta-label">Credit Note Details</div>
+      <div class="meta-row"><span>Credit Note No.</span><span class="fw-bold">{{ doc.name }}</span></div>
+      <div class="meta-row"><span>Date</span><span>{{ frappe.format(doc.posting_date, "Date") }}</span></div>
+      <div class="meta-row"><span>Against Invoice</span><span>{{ doc.return_against or "—" }}</span></div>
+      <div class="meta-row"><span>Currency</span><span>{{ doc.currency }}</span></div>
+    </div>
+  </div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th style="width:4%">#</th>
+        <th>Item / Description</th>
+        <th class="center" style="width:10%">Qty</th>
+        <th class="center" style="width:8%">UOM</th>
+        <th class="right" style="width:14%">Rate</th>
+        <th class="right" style="width:14%">Credit Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in doc.items %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><strong>{{ item.item_name }}</strong>{% if item.description and item.description != item.item_name %}<div class="item-desc">{{ item.description }}</div>{% endif %}</td>
+        <td class="center">{{ item.qty | abs }}</td>
+        <td class="center">{{ item.uom }}</td>
+        <td class="right">{{ frappe.format(item.rate, {"fieldtype":"Currency"}, currency=doc.currency) }}</td>
+        <td class="right color-red fw-bold">{{ frappe.format(item.amount | abs, {"fieldtype":"Currency"}, currency=doc.currency) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals-section">
+    <table class="totals-table">
+      <tr><td>Net Credit</td><td>{{ frappe.format(doc.net_total | abs, {"fieldtype":"Currency"}, currency=doc.currency) }}</td></tr>
+      {% for tax in doc.taxes %}
+      <tr><td>{{ tax.description }}</td><td>{{ frappe.format(tax.tax_amount | abs, {"fieldtype":"Currency"}, currency=doc.currency) }}</td></tr>
+      {% endfor %}
+      <tr class="grand-total"><td>Total Credit ({{ doc.currency }})</td><td class="color-red">{{ frappe.format(doc.grand_total | abs, {"fieldtype":"Currency"}, currency=doc.currency) }}</td></tr>
+    </table>
+  </div>
+
+  {% if doc.terms %}
+  <div class="doc-notes"><div class="notes-label">Terms &amp; Conditions</div>{{ doc.terms }}</div>
+  {% endif %}
+
+  <div class="signature-section">
+    <div class="sig-block"><div class="sig-line"></div><div class="sig-label">Authorized Signatory</div></div>
+    <div class="sig-block"><div class="sig-line"></div><div class="sig-label">Customer Acknowledgement</div></div>
+  </div>
+
+  <div class="doc-footer">
+    <span>{{ doc.company }}</span><span>Page 1</span><span>{{ frappe.format(frappe.utils.now(), "Datetime") }}</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,119 @@
+{%- set doc = doc -%}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+{% include "erpnext_custom_docs/print_formats/print_common.css" %}
+.received-box {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-top: 20px;
+}
+.received-box .rb-label { font-size: 8pt; font-weight: 700; color: #555; text-transform:uppercase; letter-spacing:.4px; margin-bottom: 8px; }
+.received-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.received-field .rf-label { font-size: 7.5pt; color: #888; }
+.received-field .rf-line { border-bottom: 1px solid #aaa; margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="doc-wrapper">
+
+  <div class="doc-header">
+    <div class="company-block">
+      {% if doc.company_logo %}<img src="{{ doc.company_logo }}" style="max-height:55px;margin-bottom:6px;display:block;">{% endif %}
+      <div class="company-name">{{ doc.company }}</div>
+      <div class="company-meta">
+        {{ frappe.get_value("Company", doc.company, "phone_no") or "" }}
+      </div>
+    </div>
+    <div class="doc-title-block">
+      <div class="doc-type">Delivery Note</div>
+      <div class="doc-number">{{ doc.name }}</div>
+      <span class="doc-status
+        {%- if doc.status == 'Completed' %} status-paid
+        {%- elif doc.status == 'Cancelled' %} status-cancelled
+        {%- else %} status-submitted{% endif %}">{{ doc.status }}</span>
+    </div>
+  </div>
+
+  <div class="doc-meta">
+    <div class="meta-block">
+      <div class="meta-label">Ship To</div>
+      <div class="party-name">{{ doc.customer }}</div>
+      <div class="party-addr">
+        {{ doc.shipping_address or doc.customer_address or "" }}
+      </div>
+    </div>
+    <div class="meta-block">
+      <div class="meta-label">Delivery Details</div>
+      <div class="meta-row"><span>DO Number</span><span class="fw-bold">{{ doc.name }}</span></div>
+      <div class="meta-row"><span>Posting Date</span><span>{{ frappe.format(doc.posting_date, "Date") }}</span></div>
+      <div class="meta-row"><span>Source Order</span><span>{{ doc.items[0].against_sales_order if doc.items and doc.items[0].against_sales_order else "—" }}</span></div>
+      {% if doc.lr_no %}
+      <div class="meta-row"><span>LR / Tracking No.</span><span>{{ doc.lr_no }}</span></div>
+      {% endif %}
+      {% if doc.transporter_name %}
+      <div class="meta-row"><span>Carrier</span><span>{{ doc.transporter_name }}</span></div>
+      {% endif %}
+      <div class="meta-row"><span>Warehouse</span><span>{{ doc.set_warehouse or "—" }}</span></div>
+    </div>
+  </div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th style="width:4%">#</th>
+        <th>Item / Description</th>
+        <th class="center" style="width:10%">Ordered</th>
+        <th class="center" style="width:10%">Delivered</th>
+        <th class="center" style="width:8%">UOM</th>
+        <th style="width:14%">Batch / Serial</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in doc.items %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>
+          <strong>{{ item.item_name }}</strong>
+          {% if item.description and item.description != item.item_name %}
+            <div class="item-desc">{{ item.description }}</div>
+          {% endif %}
+        </td>
+        <td class="center">{{ item.qty }}</td>
+        <td class="center">{{ item.qty }}</td>
+        <td class="center">{{ item.uom }}</td>
+        <td>{{ item.batch_no or item.serial_no or "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if doc.terms %}
+  <div class="doc-notes"><div class="notes-label">Notes</div>{{ doc.terms }}</div>
+  {% endif %}
+
+  <div class="received-box">
+    <div class="rb-label">Proof of Delivery — Receiver Acknowledgement</div>
+    <div class="received-grid">
+      <div class="received-field"><div class="rf-label">Received by (Name)</div><div class="rf-line"></div></div>
+      <div class="received-field"><div class="rf-label">Date &amp; Time</div><div class="rf-line"></div></div>
+      <div class="received-field"><div class="rf-label">Signature</div><div class="rf-line"></div></div>
+      <div class="received-field"><div class="rf-label">Stamp / Seal</div><div class="rf-line"></div></div>
+    </div>
+  </div>
+
+  <div class="signature-section">
+    <div class="sig-block"><div class="sig-line"></div><div class="sig-label">Dispatched by</div></div>
+    <div class="sig-block"><div class="sig-line"></div><div class="sig-label">Quality Check</div></div>
+  </div>
+
+  <div class="doc-footer">
+    <span>{{ doc.company }}</span><span>Page 1</span><span>{{ frappe.format(frappe.utils.now(), "Datetime") }}</span>
+  </div>
+
+</div>
+</body>
+</html>
