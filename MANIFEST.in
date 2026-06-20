@@ -1,2 +1,0 @@
-include MANIFEST.in
-recursive-include erpnext_custom_docs *.html *.css *.js *.json *.py *.txt
