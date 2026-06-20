@@ -1,0 +1,35 @@
+{%- set doc = doc -%}
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>{% include "erpnext_custom_docs/print_formats/print_common.css" %}
+.pay-highlight{background:#eff6ff;border:2px solid #1a56db;border-radius:8px;padding:14px 18px;text-align:center;margin:20px 0}
+.pay-highlight .ph-label{font-size:9pt;color:#555;text-transform:uppercase}.pay-highlight .ph-amount{font-size:26pt;font-weight:700;color:#1a56db;margin:4px 0}.pay-highlight .ph-words{font-size:9pt;color:#333;font-style:italic}
+.ref-table{width:100%;border-collapse:collapse;font-size:9pt;margin-top:14px}.ref-table th{background:#f3f4f6;padding:6px 10px;font-weight:600;color:#555;text-align:left;border:1px solid #e5e7eb}.ref-table td{padding:6px 10px;border:1px solid #e5e7eb;color:#333}
+</style></head><body><div class="doc-wrapper">
+<div class="doc-header">
+  <div class="company-block">{% if doc.company_logo %}<img src="{{ doc.company_logo }}" style="max-height:55px;margin-bottom:6px;display:block;">{% endif %}<div class="company-name">{{ doc.company }}</div></div>
+  <div class="doc-title-block"><div class="doc-type">Payment Receipt</div><div class="doc-number">{{ doc.name }}</div><span class="doc-status {% if doc.docstatus == 1 %}status-paid{% elif doc.docstatus == 2 %}status-cancelled{% else %}status-draft{% endif %}">{{ "Submitted" if doc.docstatus == 1 else "Cancelled" if doc.docstatus == 2 else "Draft" }}</span></div>
+</div>
+<div class="doc-meta">
+  <div class="meta-block"><div class="meta-label">{{ "Received From" if doc.payment_type == "Receive" else "Paid To" }}</div><div class="party-name">{{ doc.party }}</div><div class="party-addr">{{ doc.party_type }}</div></div>
+  <div class="meta-block"><div class="meta-label">Payment Details</div>
+    <div class="meta-row"><span>Payment No.</span><span class="fw-bold">{{ doc.name }}</span></div>
+    <div class="meta-row"><span>Date</span><span>{{ frappe.format(doc.posting_date, "Date") }}</span></div>
+    <div class="meta-row"><span>Type</span><span>{{ doc.payment_type }}</span></div>
+    <div class="meta-row"><span>Mode</span><span>{{ doc.mode_of_payment }}</span></div>
+    {% if doc.reference_no %}<div class="meta-row"><span>Ref / Cheque No.</span><span>{{ doc.reference_no }}</span></div>{% endif %}
+  </div>
+</div>
+<div class="pay-highlight">
+  <div class="ph-label">Amount {{ "Received" if doc.payment_type == "Receive" else "Paid" }}</div>
+  <div class="ph-amount">{{ doc.currency }} {{ frappe.format(doc.paid_amount, {"fieldtype":"Currency"}, currency=doc.currency) }}</div>
+  <div class="ph-words">{{ doc.in_words or "" }}</div>
+</div>
+{% if doc.references %}
+<div style="margin-top:14px"><div style="font-weight:700;font-size:8.5pt;color:#1a56db;text-transform:uppercase;margin-bottom:8px">Allocated Against</div>
+<table class="ref-table"><thead><tr><th>Type</th><th>Document</th><th class="text-right">Total</th><th class="text-right">Outstanding</th><th class="text-right">Allocated</th></tr></thead>
+<tbody>{% for ref in doc.references %}<tr><td>{{ ref.reference_doctype }}</td><td style="color:#1a56db">{{ ref.reference_name }}</td><td class="text-right">{{ frappe.format(ref.total_amount, {"fieldtype":"Currency"}, currency=doc.currency) }}</td><td class="text-right">{{ frappe.format(ref.outstanding_amount, {"fieldtype":"Currency"}, currency=doc.currency) }}</td><td class="text-right fw-bold">{{ frappe.format(ref.allocated_amount, {"fieldtype":"Currency"}, currency=doc.currency) }}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endif %}
+<div class="signature-section"><div class="sig-block"><div class="sig-line"></div><div class="sig-label">Cashier / Accountant</div></div><div class="sig-block"><div class="sig-line"></div><div class="sig-label">Authorized Signatory</div></div></div>
+<div class="doc-footer"><span>{{ doc.company }}</span><span>Page 1</span><span>{{ frappe.format(frappe.utils.now(), "Datetime") }}</span></div>
+</div></body></html>
