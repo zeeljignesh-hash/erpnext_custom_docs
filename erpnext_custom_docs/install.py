@@ -18,4 +18,3 @@ def after_install():
     for doctype, fmt in mappings.items():
         if frappe.db.exists("Print Format", fmt):
             frappe.db.set_value("DocType", doctype, "default_print_format", fmt)
-            frappe.db.commit()
