@@ -13,3 +13,7 @@ build-backend = "flit_core.buildapi"
 
 [tool.flit.module]
 name = "erpnext_custom_docs"
+
+[tool.bench.dependencies]
+frappe = ">=15.0.0 <16.0.0"
+erpnext = ">=15.0.0 <16.0.0"
